@@ -1,0 +1,194 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(cuid())
+  externalId      String           @unique
+  name            String?
+  email           String?          @unique
+  isAdmin         Boolean          @default(false)
+  Group           Group[]
+  userGroup       UserGroups[]
+  UserPreferences UserPreference[]
+}
+
+model Group {
+  id              String            @id @default(cuid())
+  name            String
+  adminId         String            @unique
+  admin           User              @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  UserGroups      UserGroups[]
+  BankAccount     BankAccount[]
+  BankTransaction BankTransaction[]
+  BankItem        BankItem[]
+  UserBudget      UserBudget[]
+  UserGoal        UserGoal[]
+}
+
+model UserGroups {
+  userId  String
+  groupId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
+}
+
+model UserPreference {
+  language String
+  userId   String @id
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// User data
+model UserCategory {
+  id           String                    @id @default(cuid())
+  color        String?
+  name         String
+  groupId      String
+  default      Boolean                   @default(false)
+  limit        Float                     @default(0)
+  transactions BankTransactionCategory[]
+
+  @@index([groupId])
+}
+
+model UserGoal {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  amount      Float
+  dateEnd     DateTime
+  groupId     String
+
+  Group               Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  BankTransactionGoal BankTransactionGoal[]
+
+  @@index([groupId])
+}
+
+model UserBudget {
+  id          String @id @default(cuid())
+  name        String
+  description String
+  amount      Float
+  type        String
+  startMonth  Float
+  groupId     String
+
+  Group                 Group                   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  BankTransactionBudget BankTransactionBudget[]
+
+  @@index([groupId])
+}
+
+// Bank data
+model BankItem {
+  id            String        @id @default(cuid())
+  groupId       String
+  institutionId String
+  externalId    String        @unique
+  accessToken   String
+  bankAccounts  BankAccount[]
+  provider      String
+  createdAt     DateTime      @default(now())
+  lastFetch     DateTime?
+  status        Boolean       @default(true)
+
+  plaidCursor     String?
+  plaidHasMore    Boolean?
+  Group           Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  BankInstitution BankInstitution @relation(fields: [institutionId], references: [externalId])
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  institutionId String
+  externalId    String   @unique
+  name          String
+  externalName  String
+  iban          String
+  balance       Float
+  lastFetch     DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  bankItemId String
+  bankItem   BankItem @relation(fields: [bankItemId], references: [id], onDelete: Cascade)
+
+  groupId         String
+  group           Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  BankTransaction BankTransaction[]
+  BankInstitution BankInstitution   @relation(fields: [institutionId], references: [externalId])
+
+  @@index([groupId])
+}
+
+model BankInstitution {
+  id         String @id @default(cuid())
+  externalId String @unique
+  name       String
+
+  BankAccount BankAccount[]
+  BankItem    BankItem[]
+}
+
+model BankTransaction {
+  id           String   @id @default(cuid())
+  externalId   String   @unique
+  amount       Float
+  debitorName  String?
+  debitorIban  String?
+  date         DateTime
+  name         String
+  salary       Boolean  @default(false)
+  hide         Boolean  @default(false)
+  currencyCode String?
+
+  bankAccountId String
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  categories BankTransactionCategory[]
+  budgets    BankTransactionBudget[]
+  goals      BankTransactionGoal[]
+}
+
+model BankTransactionCategory {
+  categoryId    String
+  transactionId String
+  category      UserCategory    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  transaction   BankTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@id([categoryId, transactionId])
+}
+
+model BankTransactionBudget {
+  budgetId      String
+  transactionId String
+  budget        UserBudget      @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  transaction   BankTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@id([budgetId, transactionId])
+}
+
+model BankTransactionGoal {
+  goalId        String
+  transactionId String
+  goal          UserGoal        @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  transaction   BankTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@id([goalId, transactionId])
+}
