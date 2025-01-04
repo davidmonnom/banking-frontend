@@ -72,3 +72,25 @@ Follow the backend server installation instructions.
 
 ## Video
 [![Watch the video](screenshots/dashboard_dark.png)](screenshots/cedav.mp4)
+
+## History
+
+Initially, this application was created as a challenge to myself. It's not finished yet, and some features are still missing.
+
+Here are the initial wireframes
+
+#### Dashboard
+![image](https://github.com/user-attachments/assets/4b23311f-2e1d-451e-8563-57ea9743060b)
+
+#### Incomes
+![image](https://github.com/user-attachments/assets/5d5a8dcc-59e5-4ce1-821e-77acd473da57)
+
+#### Expenses
+![image](https://github.com/user-attachments/assets/e0d046b6-d68b-47f2-a272-8a5a5ad6100c)
+
+#### Recurring expenses
+![image](https://github.com/user-attachments/assets/dc97a8f1-355b-4549-afa2-c286ef713cea)
+
+#### Settings
+![image](https://github.com/user-attachments/assets/007b042c-5586-4e76-a5e1-54113006556d)
+
